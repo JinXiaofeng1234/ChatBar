@@ -1,0 +1,11 @@
+RECHO_KEY: '0'
+Fish_Audio_Key: '0'
+BaiDu_Speech_Recog:
+  API_KEY: '0'
+  SECRET_KEY: '0'
+Gaode_weather_key: '0'
+Erin:
+  API_KEY: '0'
+  SECRET_KEY: '0'
+QWen_API_KEY: '0'
+KIMI_SEARCH_API_KEY: '0'
