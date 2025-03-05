@@ -984,6 +984,8 @@ class DialogWindow:
         self.screen.blit(self.modify_llm_response_image_transformed, self.modify_llm_response_button)
         self.screen.blit(self.llm_repeat_transformed, self.llm_repeat_button)
         self.screen.blit(self.llm_response_copy_transformed, self.llm_response_copy_button)
+        self.screen.blit(self.conversation_history_selector_transformed, self.conversation_history_selector_button)
+        self.screen.blit(self.conversation_history_save_transformed, self.conversation_history_save_button)
         self.screen.blit(self.speech_icon_image_transformed, self.speech_recognition_button)
         self.screen.blit(self.image_upload_image_transformed, self.image_upload_button)
 

@@ -13,5 +13,7 @@
     "net_work_disabled_icon": "web_search_disable_icon.png",
     "modify_llm_response_icon": "modify_llm_response_icon.png",
     "llm_repeat_icon": "repeat_icon.png",
-    "copy_icon": "copy_icon.png"
+    "copy_icon": "copy_icon.png",
+    "conversation_history_selector_icon": "conversation_selector_icon.png",
+    "conversation_history_save_icon": "conversation_save_icon.png"
 }

@@ -8,5 +8,7 @@
   "net_work_adapt_transformed",
   "modify_llm_response_image_transformed",
   "llm_repeat_transformed",
-  "llm_response_copy_transformed"
+  "llm_response_copy_transformed",
+  "conversation_history_selector_transformed",
+  "conversation_history_save_transformed"
 ]

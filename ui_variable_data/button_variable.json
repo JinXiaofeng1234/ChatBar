@@ -11,5 +11,7 @@
   "net_work_adapt_button": [902, 434, 50, 50],
   "modify_llm_response_button": [974, 484, 50, 50],
   "llm_repeat_button": [974, 540, 50, 50],
-  "llm_response_copy_button": [974, 596, 50, 50]
+  "llm_response_copy_button": [974, 596, 50, 50],
+  "conversation_history_selector_button": [974, 652, 50, 50],
+  "conversation_history_save_button": [974, 708, 50, 50]
 }
