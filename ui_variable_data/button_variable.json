@@ -1,0 +1,15 @@
+{
+  "send_button": [850, 784, 99, 56],
+  "close_button": [974, 0, 50, 49],
+  "min_button": [923, 0, 50, 49],
+  "speech_recognition_button": [953, 784, 41, 56],
+  "image_upload_button": [27, 788, 41, 47],
+  "music_button": [874, 0, 50, 49],
+  "setting_button": [824, 0, 50, 50],
+  "switch_role_button": [774, 0, 50, 50],
+  "database_adapt_button": [849, 434, 50, 50],
+  "net_work_adapt_button": [902, 434, 50, 50],
+  "modify_llm_response_button": [974, 484, 50, 50],
+  "llm_repeat_button": [974, 540, 50, 50],
+  "llm_response_copy_button": [974, 596, 50, 50]
+}

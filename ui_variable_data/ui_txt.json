@@ -1,0 +1,27 @@
+{
+  "menu_options_ls": ["大模型选择", "语音生成模型选择", "知识库选择", "搜索引擎选择", "视觉任务选择", "立绘动画模式选择"],
+  "model_list" : [
+    "千问2.5-14b-128K", "文心一言4.0-128K", "通义千问Plus", "Deep Seek V3",
+    "Deep Seek R1", "通义千问Max", "通义千问72B-128K"
+  ],
+  "model_system_support_ls": [1, 0, 1, 1, 1, 1, 1],
+  "speech_model_list" : [
+    "睿声", "Fish Audio"
+  ],
+  "kb_list" : [
+    "问答数据库", "段落向量数据库", "碎片化向量数据库", "记忆向量数据库", "记忆图向量数据库"],
+  "search_engine_ls" : [
+    "kimi", "敬请期待"
+  ],
+  "vision_mode_ls" : [
+    "根据提示词", "OCR", "画面赏析", "场景识别", "人脸识别"
+  ],
+   "speech_gen_model_list" : [
+     "recho", "fish"
+   ],
+  "animation_ls": ["单次", "多轮"],
+  "room_name_ls" : ["门厅", "餐厅", "客厅", "女生卧室", "房东卧室", "女性洗浴间", "男性洗浴间"],
+  "room_ls" : ["doorroom", "dinning_room", "living_room", "npc_bedroom", "player_bedroom",
+                        "washroom", "washroom"],
+  "relationship_dic": {"0": "陌生人", "1": "熟人", "2": "朋友", "3": "暧昧", "4": "恋人", "5": "未婚夫妇", "6": "夫妻"}
+}

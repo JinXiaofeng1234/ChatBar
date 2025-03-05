@@ -1,0 +1,9 @@
+睿声api 语音合成
+百度api 语音识别 https://console.bce.baidu.com/ai/#/ai/speech/overview/index
+高德api 天气预报 https://lbs.amap.com/api/webservice/guide/api/weatherinfo
+百度api 文心一言 https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application
+阿里api 通义千问 https://myaccount.console.aliyun.com/overview https://bailian.console.aliyun.com/?admin=1#/efm/business_management?agentName=&pageNo=1&z_type_=%7B%22pageNo%22%3A%22num%22%7D
+DEEP SEEK https://www.deepseek.com/
+Fish Audio 语音合成 https://fish.audio/zh-CN/go-api/billing/
+kimi api 网络搜索 https://platform.moonshot.cn/console/account
+硅基流动api 千问2.5/语音合成 https://siliconflow.cn/zh-cn/

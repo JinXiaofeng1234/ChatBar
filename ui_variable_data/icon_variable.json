@@ -1,0 +1,17 @@
+{
+    "tick_icon": "tick_icon.png",
+    "disabled_icon": "red_line_icon.png",
+    "music_disabled_icon": "music_stop_icon.png",
+    "knowledge_base_icon": "data_base_icon.png",
+    "net_work_icon": "web_search_icon.png",
+    "speech_icon_image": "sound_icon.png",
+    "image_upload_image": "image_outline_icon.png",
+    "music_icon": "music_icon.png",
+    "setting_icon": "setting_icon.png",
+    "role_switch_icon": "role_switch_icon.png",
+    "knowledge_base_disabled_icon": "data_base_disable_icon.png",
+    "net_work_disabled_icon": "web_search_disable_icon.png",
+    "modify_llm_response_icon": "modify_llm_response_icon.png",
+    "llm_repeat_icon": "repeat_icon.png",
+    "copy_icon": "copy_icon.png"
+}
