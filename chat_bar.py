@@ -236,19 +236,16 @@ class DialogWindow:
         self.setting_menu = ScreenBoard(400, 580, text_dic=self.ui_txt_dic, x=312, y=140)  # 基活菜单
 
         # 文本输入框设置
-        self.input_box = ScrollableTextBox(
-            int(self.WIDTH * 0.072), int(self.HEIGHT * 0.918), int(self.WIDTH * 0.745), int(self.HEIGHT * 0.053),
-            (255, 255, 255), self.label_font
-        )
+        self.input_box = ScrollableTextBox(73, 789, 762, 45, (255, 255, 255), self.label_font)
 
         # 设定人物状态栏
         self.create_status()
 
         self.refresh_status()
 
-        self.status_bar_rect = self.status_bar.get_rect(center=(int(self.WIDTH * 0.217), int(self.HEIGHT * 0.116)))
+        self.status_bar_rect = self.status_bar.get_rect(center=(222, 99))
         # 创建半透明图片
-        self.image_size = (int(self.WIDTH * 0.859), int(self.HEIGHT * 0.330))
+        self.image_size = (879, 283)
         self.position_x = self.image_size[0] // 2  # 计算对话框的中线x轴值
         self.image = pygame.Surface(self.image_size, pygame.SRCALPHA)
         self.single_line_max_num = int(self.image.get_width() / 24)  # 计算单行最大字符数
@@ -284,7 +281,7 @@ class DialogWindow:
         play_sound_async(self.role_cards_path)  # 播放欢迎语句
 
     def create_status(self):
-        self.img_size = (int(self.WIDTH * 0.293), int(self.HEIGHT * 0.149))
+        self.img_size = (300, 128)
         self.status_bar = pygame.Surface(self.img_size, pygame.SRCALPHA)
         self.status_bar.fill((100, 100, 100, 128))  # 灰色，半透明
         self.status_bar.blit(self.avatar, (0, 0))
@@ -926,7 +923,7 @@ class DialogWindow:
 
         self.input_box.handle_event(self.event_list)
 
-    @ staticmethod
+    @staticmethod
     def get_scaled_icon(icon, disabled_icon, button, flag):
         """根据标志返回缩放后的图标"""
         return pygame.transform.scale(icon if flag else disabled_icon, (button.width, button.height))
