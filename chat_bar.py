@@ -40,33 +40,9 @@ class DialogWindow:
         self.WHITE = (255, 255, 255)
 
         # === UI图标资源 ===
-        self.tick_icon = None
-        self.music_icon = None
-        self.disabled_icon = None
-        self.music_disabled_icon = None
-        self.setting_icon = None
-        self.role_switch_icon = None
-        self.knowledge_base_icon = None
-        self.knowledge_base_disabled_icon = None
-        self.net_work_icon = None
-        self.net_work_disabled_icon = None
-        self.modify_llm_response_icon = None
-        self.llm_repeat_icon = None
-        self.copy_icon = None
-        self.switch_role_button = None
-        self.modify_llm_response_button = None
-        self.llm_repeat_button = None
-        self.llm_response_copy_button = None
-        self.setting_image_transformed = None
         self.music_image_transformed = None
         self.database_adapt_transformed = None
         self.net_work_adapt_transformed = None
-        self.llm_response_copy_transformed = None
-        self.image_upload_image_transformed = None
-        self.speech_icon_image_transformed = None
-        self.switch_image_transformed = None
-        self.modify_llm_response_image_transformed = None
-        self.llm_repeat_transformed = None
 
         # === UI按钮元素 ===
         self.room_select_box = None
@@ -169,22 +145,25 @@ class DialogWindow:
         self.time_check_point = 0
 
         # === 系统标志位 ===
-        self.refresh_status_flag = None
+        self.refresh_status_flag = bool()
         self.refresh_dialogue_flag = False
         self.data_base_able_flag = False
         self.net_work_able_flag = False
         self.music_stop_flag = False
         self.menu_able_flag = False
-        self.microphone_able_flag = None
+        self.microphone_able_flag = bool()
 
         # === 文件和路径 ===
-        self.upload_image_file_path = None
+        self.upload_image_file_path = str()
 
         # === 配置和设置 ===
+        self.transformed_ls = list()
+        self.transformed_names_ls = list()
+        self.button_variables_ls = list()
         self.setting_ls = [0, 0, 0, 0, 0, 0]
         self.current_select_speech_gen_model_index = -1
         self.selected_option_index = -1
-        self.sound_text = None
+        self.sound_text = str()
 
         # === 数据和存储 ===
         self.data = None
@@ -289,10 +268,11 @@ class DialogWindow:
             self.room_name_ls)
 
         # 生成按钮transformed
-        transformed_names_ls = read_json('ui_variable_data/transformed.json')
+        self.transformed_names_ls = read_json('ui_variable_data/transformed.json')
         icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[5:]]
-        button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[3:]]
-        for t_name, icon, button in zip(transformed_names_ls, icon_variables_ls, button_variables_ls):
+        self.button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[3:]]
+
+        for t_name, icon, button in zip(self.transformed_names_ls, icon_variables_ls, self.button_variables_ls):
             setattr(self, t_name, pygame.transform.scale(icon, (button.width, button.height)))
 
         # 光标设置
@@ -971,23 +951,12 @@ class DialogWindow:
 
         self.input_box.draw(self.screen)  # 绘制输入框
 
-        self.screen.blit(self.setting_image_transformed, self.setting_button)
-        self.screen.blit(self.music_image_transformed, self.music_button)
-        self.screen.blit(self.switch_image_transformed, self.switch_role_button)
+        self.transformed_ls = [vars(self)[key] for key in self.transformed_names_ls]
+        [self.screen.blit(transformed, button) for transformed, button in
+         zip(self.transformed_ls, self.button_variables_ls)]
 
         self.draw_button(self.GRAY, self.close_button, self.send_button_font, '×', self.DARK_GRAY, 12, 10)
         self.draw_button(self.GRAY, self.min_button, self.send_button_font, '-', self.DARK_GRAY, 15, 10)
-
-        self.screen.blit(self.database_adapt_transformed, self.database_adapt_button)
-        self.screen.blit(self.net_work_adapt_transformed, self.net_work_adapt_button)
-
-        self.screen.blit(self.modify_llm_response_image_transformed, self.modify_llm_response_button)
-        self.screen.blit(self.llm_repeat_transformed, self.llm_repeat_button)
-        self.screen.blit(self.llm_response_copy_transformed, self.llm_response_copy_button)
-        self.screen.blit(self.conversation_history_selector_transformed, self.conversation_history_selector_button)
-        self.screen.blit(self.conversation_history_save_transformed, self.conversation_history_save_button)
-        self.screen.blit(self.speech_icon_image_transformed, self.speech_recognition_button)
-        self.screen.blit(self.image_upload_image_transformed, self.image_upload_button)
 
         if self.refresh_status_flag:
             self.refresh_status()
