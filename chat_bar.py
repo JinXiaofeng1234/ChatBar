@@ -645,6 +645,9 @@ class DialogWindow:
                     else:
                         pyperclip.copy(self.conversation_history[-4]['content'])
 
+                if self.conversation_history_save_button.collidepoint(event.pos):
+                    self.limit_context_length()
+
                 if self.speech_recognition_button.collidepoint(event.pos):
                     res_json = voice_recognition(model_flag=False)
                     if res_json:
@@ -756,10 +759,7 @@ class DialogWindow:
     def agent_response(self):
         if self.llm_process_flag:
             if self.token_num >= 64000:
-                save_conversation_history(self.conversation_history)
-                self.conversation_history = self.conversation_history[self.prompt_index:]
-                self.prompt_index = 0
-                self.token_num = history_token_calculate(self.conversation_history)
+                self.limit_context_length()
 
             # remove_flag = False
             ai_info = f'\nYour Status Parameters:[你和用户的关系:{self.relationship};' \
@@ -847,6 +847,13 @@ class DialogWindow:
 
             self.send_disable_flag = False
             self.llm_response_text_analysis_flag = True
+
+    def limit_context_length(self):  # 修剪上下文
+        save_conversation_history(self.conversation_history,
+                                  self.prompt_index, f'{self.role_cards_path}/memory_info/')
+        self.conversation_history = self.conversation_history[self.prompt_index:]
+        self.prompt_index = 0
+        self.token_num = history_token_calculate(self.conversation_history)
 
     def external_data_query_result_processing(self, ai_status, res):
         # 将用户输入添加到对话历史

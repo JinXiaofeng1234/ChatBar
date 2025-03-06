@@ -53,18 +53,16 @@ def read_json(file_name):
     return parsed_json
 
 
-def save_conversation_history(dic_ls):
-    history_ls = list()
-    history = dic_ls[1:]
-    for dic in history:
-        for key, value in dic.items():
-            history_ls.append(f'{key}:')
-            history_ls.append(value)
-    # 使用 range() 函数遍历列表
-    for i in range(1, len(history_ls), 2):
-        history_ls[i] = history_ls[i] + ';'
-    sub_lists = ["".join(history_ls[i:i + 4]) for i in range(0, len(history_ls), 4)]
-    save_ls_txt(sub_lists, 'memory.txt')
+def save_conversation_history(dic_ls, prompt_index, path):
+    history = dic_ls[:prompt_index] + dic_ls[prompt_index+3:]
+    for index, dic in enumerate(history):
+        role = history[index]["role"]
+        if role == 'system':
+            content_ls = history[index]["content"].split('\n')
+            history[index]["content"] = content_ls[1][4:]
+
+    save_json(history, 'memory', path)
+
 
 
 if __name__ == "__main__":

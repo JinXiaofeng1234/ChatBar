@@ -92,13 +92,13 @@ class KnowledgeBase:
                         current_chunk = []
                         current_length = 0
 
-                        # 将超长句子按max_length切分
+                    # 将超长句子按max_length切分
                     for i in range(0, sentence_length, max_length):
                         chunk = sentence[i:i + max_length]
                         chunks.append(chunk)
                     continue
 
-                    # 如果加入当前句子会超过max_length
+                # 如果加入当前句子会超过max_length
                 if current_length + sentence_length > max_length:
                     # 保存当前chunk
                     if current_chunk:
@@ -109,7 +109,7 @@ class KnowledgeBase:
                     current_chunk.append(sentence)
                     current_length += sentence_length
 
-                    # 处理最后剩余的chunk
+            # 处理最后剩余的chunk
             if current_chunk:
                 chunks.append(''.join(current_chunk))
 
