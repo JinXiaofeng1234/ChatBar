@@ -1,7 +1,6 @@
 from ollama import embeddings
 import numpy as np
 import re
-import json
 import os
 from tqdm import tqdm
 from ChatBar.prompt_reader import save_json, read_json
@@ -34,20 +33,35 @@ def expand_indices(indices, max_length):
 
 class KnowledgeBase:
     def __init__(self, file_path, index):
+        self.index = index
         encode_flag = True
         path_ls = file_path.split('/')
         main_path = f'{"/".join(path_ls[:-1])}/{path_ls[-1].split(".")[0]}'
         cache_npy_file_path = f'{main_path}.npy'
         cache_json_file_path = f'{main_path}.json'
 
+        if self.index == 2:
+            cache_json_file_path = f'{main_path}_.json'
+
         if os.path.exists(cache_npy_file_path):
             encode_flag = False
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        self.content = content
+
         if encode_flag:
-            self.docs = self.split_content(content, split_identification_index=index)
-            save_json(self.docs, f'{path_ls[-1].split(".")[0]}', f'{"/".join(path_ls[:-1])}/')
+            content = file_path
+            if self.index != 2:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                f.close()
+
+            self.content = content
+            self.docs = self.split_content(self.content, split_identification_index=self.index)
+
+            docs_file_name = f'{path_ls[-1].split(".")[0]}'
+            if self.index == 2:
+                docs_file_name = f'{docs_file_name}_'
+
+            save_json(self.docs, docs_file_name, f'{"/".join(path_ls[:-1])}/')
+
             self.embeds = self.encode(self.docs)
             np.save(cache_npy_file_path, self.embeds)
 
@@ -117,9 +131,10 @@ class KnowledgeBase:
             chunks = content.split('###')
 
         elif split_identification_index == 2:
-            json_obj = json.loads(content)["memory"][2:]
-            memory_filtered = [str(i) for i in json_obj if i["role"] != 'system']
-            chunks = ["".join(memory_filtered[i:i + 4]) for i in range(0, len(memory_filtered) - 1, 4)]
+            conversation_dic = read_json(content)
+            memory_filtered = [i for i in conversation_dic if i["role"] != 'system']
+            chunks = ["".join([f'{item["role"]}:{item["content"]}' for item in memory_filtered[i:i + 4]])
+                      for i in range(0, len(memory_filtered) - 1, 4)]
 
         return chunks
 
@@ -140,12 +155,15 @@ class KnowledgeBase:
                        if similarities[_property_index] > 0.2]
         if top_k and top_indices and len(top_indices) > top_k:
             top_indices = top_indices[:top_k]
-        top_indices = expand_indices(top_indices, self.docs_length)
+
+        if self.index != 1:
+            top_indices = expand_indices(top_indices, self.docs_length)
+
         return [(self.docs[i], similarities[i]) for i in top_indices]
 
 
 if __name__ == "__main__":
-    kb = KnowledgeBase(r'F:/Backup/python_game/ChatBar/role_cards/樱井惠/character_info/test_kb.txt', 0)
+    kb = KnowledgeBase(r"F:/Backup/python_game/ChatBar/role_cards/樱井惠/character_info/test_kb2.txt", 0)
     while True:
         question = input('请输入问题:')
         if question == 'quit':
