@@ -1,4 +1,6 @@
 [
+  "close_button_icon_transformed",
+  "min_button_icon_transformed",
   "speech_icon_image_transformed",
   "image_upload_image_transformed",
   "music_image_transformed",
@@ -10,5 +12,6 @@
   "llm_repeat_transformed",
   "llm_response_copy_transformed",
   "conversation_history_selector_transformed",
-  "conversation_history_save_transformed"
+  "conversation_history_save_transformed",
+  "eye_transformed"
 ]

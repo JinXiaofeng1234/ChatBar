@@ -43,6 +43,7 @@ class DialogWindow:
         self.music_image_transformed = None
         self.database_adapt_transformed = None
         self.net_work_adapt_transformed = None
+        self.eye_transformed = None
 
         # === UI按钮元素 ===
         self.room_select_box = None
@@ -151,6 +152,7 @@ class DialogWindow:
         self.net_work_able_flag = False
         self.music_stop_flag = False
         self.menu_able_flag = False
+        self.ui_visible_flag = True
         self.microphone_able_flag = bool()
 
         # === 文件和路径 ===
@@ -266,8 +268,8 @@ class DialogWindow:
 
         # 生成按钮transformed
         self.transformed_names_ls = read_json('ui_variable_data/transformed.json')
-        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[5:]]
-        self.button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[3:]]
+        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[6:]]
+        self.button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[1:]]
 
         for t_name, icon, button in zip(self.transformed_names_ls, icon_variables_ls, self.button_variables_ls):
             setattr(self, t_name, pygame.transform.scale(icon, (button.width, button.height)))
@@ -450,15 +452,6 @@ class DialogWindow:
                     self.filtered_index_ls.append(index)
         self.conversation_history = [item_dic for index, item_dic in enumerate(self.conversation_history)
                                      if index not in self.filtered_index_ls]
-
-    def draw_button(self, bg_color, btn, font, text, text_color, offset_x, offset_y, icon_flag=False, icon_img=None):
-        pygame.draw.rect(self.screen, bg_color, btn)
-        close_btn_text = font.render(text, True, text_color)
-        self.screen.blit(close_btn_text, (btn.x + offset_x, btn.y + offset_y))
-        if icon_flag:
-            icon_image_transformed = pygame.transform.scale(icon_img, (btn.width,
-                                                                       btn.height))
-            self.screen.blit(icon_image_transformed, btn)
 
     def refresh_status(self):
         self.status_bar.fill((100, 100, 100, 128), (128, 0, 172, 128))  # 灰色，半透明
@@ -674,6 +667,9 @@ class DialogWindow:
                 if self.image_upload_button.collidepoint(event.pos):
                     self.upload_image_file_path = ImageUploader().get_image_path()
 
+                if self.UI_visible_button.collidepoint(event.pos):
+                    self.ui_visible_flag = not self.ui_visible_flag
+
             if event.type == pygame.KEYDOWN:
                 # 获取所有按键状态
                 keys = pygame.key.get_pressed()
@@ -851,6 +847,7 @@ class DialogWindow:
     def limit_context_length(self):  # 修剪上下文
         save_conversation_history(self.conversation_history,
                                   self.prompt_index, f'{self.role_cards_path}/memory_info/')
+        self.standard_conversation_history = None  # 清空备份聊天记录
         self.conversation_history = self.conversation_history[self.prompt_index:]
         self.prompt_index = 0
         self.token_num = history_token_calculate(self.conversation_history)
@@ -903,6 +900,10 @@ class DialogWindow:
 
         self.net_work_adapt_transformed = self.get_scaled_icon(
             self.net_work_icon, self.net_work_disabled_icon, self.net_work_adapt_button, self.net_work_able_flag
+        )
+
+        self.eye_transformed = self.get_scaled_icon(
+            self.eye_on_icon, self.eye_close_icon, self.UI_visible_button, self.ui_visible_flag
         )
 
         if current_select_model_index >= 0:
@@ -959,22 +960,20 @@ class DialogWindow:
         [self.screen.blit(transformed, button) for transformed, button in
          zip(self.transformed_ls, self.button_variables_ls)]
 
-        self.draw_button(self.GRAY, self.close_button, self.send_button_font, '×', self.DARK_GRAY, 12, 10)
-        self.draw_button(self.GRAY, self.min_button, self.send_button_font, '-', self.DARK_GRAY, 15, 10)
-
         if self.refresh_status_flag:
             self.refresh_status()
             self.refresh_status_flag = False
         self.screen.blit(self.status_bar, self.status_bar_rect)
 
-        if not self.send_disable_flag:
-            if self.change_btn_flag:
-                self.change_button_color(self.DARK_GRAY)
-                self.change_btn_flag = False
-            else:
-                self.change_button_color(self.GRAY)
-        else:
-            self.change_button_color(self.DARK_GRAY)
+        # Determine the color based on the flags
+        button_color = self.DARK_GRAY if self.send_disable_flag or self.change_btn_flag else self.GRAY
+
+        # Change the button color
+        self.change_button_color(button_color)
+
+        # Reset the change_btn_flag if it was True
+        if self.change_btn_flag:
+            self.change_btn_flag = False
 
         self.clock_widget.draw(self.screen)  # 绘制时钟
 

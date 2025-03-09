@@ -1,7 +1,7 @@
 {
   "send_button": [850, 784, 99, 56],
-  "close_button": [974, 0, 50, 49],
-  "min_button": [923, 0, 50, 49],
+  "close_button": [974, 0, 50, 50],
+  "min_button": [923, 0, 50, 50],
   "speech_recognition_button": [953, 784, 50, 50],
   "image_upload_button": [27, 788, 50, 50],
   "music_button": [874, 0, 50, 49],
@@ -13,5 +13,6 @@
   "llm_repeat_button": [974, 540, 50, 50],
   "llm_response_copy_button": [974, 596, 50, 50],
   "conversation_history_selector_button": [974, 652, 50, 50],
-  "conversation_history_save_button": [974, 708, 50, 50]
+  "conversation_history_save_button": [974, 708, 50, 50],
+  "UI_visible_button": [724, 0, 50, 50]
 }
