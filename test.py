@@ -464,5 +464,5 @@
 #     tkinter_thread.start()
 #
 #     pygame_thread.join()
-#     tkinter_thread.join()
+#      tkinter_thread.join()
 

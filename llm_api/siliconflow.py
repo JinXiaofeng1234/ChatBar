@@ -1,5 +1,5 @@
 import requests
-from ChatBar import load_yaml
+import load_yaml
 
 key = load_yaml.GetApiGroup().get_sf_key()
 

@@ -1,7 +1,7 @@
 # Please install OpenAI SDK first: `pip3 install openai`
 
 from openai import OpenAI
-from ChatBar import load_yaml
+import load_yaml
 
 api_key = load_yaml.GetApiGroup().get_deep_seek_key()
 

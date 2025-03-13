@@ -1,6 +1,6 @@
 import requests
 import json
-from ChatBar import load_yaml
+import load_yaml
 
 sk_group = load_yaml.GetApiGroup().get_erin_keys()
 API_KEY = sk_group[0]  # "482ecSxmh5aRPZgFCKz0jyGi"\

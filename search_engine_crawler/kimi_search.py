@@ -4,7 +4,7 @@ import json
 
 from openai import OpenAI
 from openai.types.chat.chat_completion import Choice
-from ChatBar import load_yaml
+import load_yaml
 
 api_key = load_yaml.GetApiGroup().get_kimi_search_key()
 try:

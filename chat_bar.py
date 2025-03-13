@@ -3,7 +3,7 @@ import sys
 import os
 from llm_api_request import chat_with_model
 from start_ollama import start_ollama
-from ChatBar.prompt_reader import read_txt, read_json, save_memory_json, \
+from prompt_reader import read_txt, read_json, save_memory_json, \
     save_conversation_history, save_json
 from music_player import MusicPlayer
 from get_voice import play_voice_async, play_sound_async
@@ -17,7 +17,7 @@ from web_search import WebScarp
 from setting_menu import ScreenBoard
 from npc import IntelligentAgent
 import copy
-from upload_image import ImageUploader
+from upload_file import ImageUploader
 from select_box import OptionBox
 from switch_character_pose_box import ImageTransitionBox
 from confirm_time import get_current_time_period
@@ -103,6 +103,7 @@ class DialogWindow:
         self.response_text_length = None
         self.out_put_rules = None
         self.model_system_support_ls = None
+        self.vision_model_prompt = str()
 
         # === 角色状态相关 ===
         self.character_statu_dic = None
@@ -125,7 +126,7 @@ class DialogWindow:
         self.favorability_text_surface = None
         self.relationship_text_rect = None
         self.relationship_text_surface = None
-        self.change_btn_flag = None
+        self.change_btn_flag = bool()
 
         # === 对话和输入相关 ===
         self.conversation_history = None
@@ -153,10 +154,11 @@ class DialogWindow:
         self.music_stop_flag = False
         self.menu_able_flag = False
         self.ui_visible_flag = True
+        self.eye_btn_hover_flag = False
         self.microphone_able_flag = bool()
 
         # === 文件和路径 ===
-        self.upload_image_file_path = str()
+        self.upload_file_content = str()
 
         # === 配置和设置 ===
         self.transformed_ls = list()
@@ -168,8 +170,11 @@ class DialogWindow:
         self.sound_text = str()
 
         # === 数据和存储 ===
-        self.data = None
-        self.v_kb = None
+        self.qa_db = None
+        self.paragraph_rag_db = None
+        self.fragmented_rag_db = None
+        self.memory_rag_db = None
+        self.memory_graph_rag_db = None
         self.latest_saving = None
         self.music_player = None
 
@@ -311,9 +316,7 @@ class DialogWindow:
         self.role_key_ls = [self.recho_role_key, self.fish_role_key]
         # 加载头像
         self.avatar = pygame.image.load(f'{self.role_cards_path}avatar/avatar.png')
-        # 载入向量化数据库
-        self.data = read_data(f'{self.role_cards_path}character_info/qa_info.json')
-        self.v_kb = KnowledgeBase(f'{self.role_cards_path}character_info/kb.txt', 1)
+        self.init_db()  # 初始化知识库
         # 读入日程字典
         self.daily_schedule_dic = read_json(f'{self.role_cards_path}actions.json')
         # 初始化对话历史
@@ -405,6 +408,20 @@ class DialogWindow:
                 self.character_name_text = self.latest_saving['name']
             else:
                 self.character_name_text = '智能体'
+
+    def init_db(self):
+        # 载入向量化数据库
+        qa_db_path = f'{self.role_cards_path}character_info/qa_info.json'
+        self.qa_db = read_data(qa_db_path) if os.path.exists(qa_db_path) else None
+        paragraph_rag_db_path = f'{self.role_cards_path}character_info/paragraph_rag.txt'
+        self.paragraph_rag_db = KnowledgeBase(paragraph_rag_db_path, 1) \
+            if os.path.exists(paragraph_rag_db_path) else None
+        fragmented_rag_db_path = f'{self.role_cards_path}character_info/fragmented_rag.txt'
+        self.fragmented_rag_db = KnowledgeBase(fragmented_rag_db_path, 0) \
+            if os.path.exists(fragmented_rag_db_path) else None
+        memory_json_path = f'{self.role_cards_path}memory_info/memory.json'
+        self.memory_rag_db = KnowledgeBase(memory_json_path, 2) if os.path.exists(memory_json_path) else None
+        self.memory_graph_rag_db = None
 
     def init_character_statu_dic(self, portrait_path):
         character_status_neutral_ls = [f'{portrait_path}/0/{file}' for file in os.listdir(f'{portrait_path}/0')]
@@ -594,7 +611,77 @@ class DialogWindow:
                 self.app_shut_down_func()
                 return False
 
+            # Hover 事件处理
+            if event.type == pygame.MOUSEMOTION:
+                self.eye_btn_hover_flag = True if self.UI_visible_button.collidepoint(event.pos) else False
+
             if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.ui_visible_flag:
+                    if self.close_button.collidepoint(event.pos):
+                        self.app_shut_down_func()
+                        return False
+
+                    if self.min_button.collidepoint(event.pos):
+                        pygame.display.iconify()
+
+                    if self.setting_button.collidepoint(event.pos):
+                        self.menu_able_flag = not self.menu_able_flag
+
+                    if self.music_button.collidepoint(event.pos):
+                        self.music_stop_flag = not self.music_stop_flag
+                        if not self.music_stop_flag:
+                            self.music_player.start()
+                        else:
+                            self.music_player.stop()
+
+                    if self.switch_role_button.collidepoint(event.pos):
+                        self.switch_role()
+
+                    if self.modify_llm_response_button.collidepoint(event.pos):
+                        self.modify_llm_response_button_clicked_func()
+
+                    if self.llm_repeat_button.collidepoint(event.pos):
+                        self.llm_repeat_button_clicked_func()
+
+                    if self.llm_response_copy_button.collidepoint(event.pos):
+                        if len(self.conversation_history) > self.conversation_history_original_length:
+                            pyperclip.copy(self.conversation_history[-1]['content'])
+                        else:
+                            pyperclip.copy(self.conversation_history[-4]['content'])
+
+                    if self.conversation_history_save_button.collidepoint(event.pos):
+                        self.limit_context_length()
+
+                    if self.speech_recognition_button.collidepoint(event.pos):
+                        res_json = voice_recognition(model_flag=False)
+                        if res_json:
+                            self.input_box.text += res_json['result'][0]
+                        elif res_json is None:
+                            print('未识别出结果')
+                        else:
+                            self.microphone_able_flag = False
+
+                    if self.database_adapt_button.collidepoint(event.pos):
+                        self.data_base_able_flag = not self.data_base_able_flag
+                        if self.data_base_able_flag:
+                            print('数据库查询已开启')
+                        else:
+                            print('数据库查询已关闭')
+
+                    if self.net_work_adapt_button.collidepoint(event.pos):
+                        self.net_work_able_flag = not self.net_work_able_flag
+                        if self.net_work_able_flag:
+                            print('网络查询已开启')
+                        else:
+                            print('网络查询已关闭')
+
+                    if self.image_upload_button.collidepoint(event.pos):
+                        if self.setting_ls[4] == 0:
+                            self.vision_model_prompt = self.user_text
+                        else:
+                            self.vision_model_prompt = self.vision_mode[str(self.setting_ls[4])]
+                        self.upload_file_content = ImageUploader().get_image_path(model_prompt=self.vision_model_prompt)
+
                 if self.send_button.collidepoint(event.pos):
                     self.user_text = self.input_box.text
                     if self.user_text:
@@ -605,67 +692,6 @@ class DialogWindow:
                         print('没有输入任何内容')
                     self.send_button_clicked = True
                     self.button_press_time = pygame.time.get_ticks()
-
-                if self.close_button.collidepoint(event.pos):
-                    self.app_shut_down_func()
-                    return False
-
-                if self.min_button.collidepoint(event.pos):
-                    pygame.display.iconify()
-
-                if self.setting_button.collidepoint(event.pos):
-                    self.menu_able_flag = not self.menu_able_flag
-
-                if self.music_button.collidepoint(event.pos):
-                    self.music_stop_flag = not self.music_stop_flag
-                    if not self.music_stop_flag:
-                        self.music_player.start()
-                    else:
-                        self.music_player.stop()
-
-                if self.switch_role_button.collidepoint(event.pos):
-                    self.switch_role()
-
-                if self.modify_llm_response_button.collidepoint(event.pos):
-                    self.modify_llm_response_button_clicked_func()
-
-                if self.llm_repeat_button.collidepoint(event.pos):
-                    self.llm_repeat_button_clicked_func()
-
-                if self.llm_response_copy_button.collidepoint(event.pos):
-                    if len(self.conversation_history) > self.conversation_history_original_length:
-                        pyperclip.copy(self.conversation_history[-1]['content'])
-                    else:
-                        pyperclip.copy(self.conversation_history[-4]['content'])
-
-                if self.conversation_history_save_button.collidepoint(event.pos):
-                    self.limit_context_length()
-
-                if self.speech_recognition_button.collidepoint(event.pos):
-                    res_json = voice_recognition(model_flag=False)
-                    if res_json:
-                        self.input_box.text += res_json['result'][0]
-                    elif res_json is None:
-                        print('未识别出结果')
-                    else:
-                        self.microphone_able_flag = False
-
-                if self.database_adapt_button.collidepoint(event.pos):
-                    self.data_base_able_flag = not self.data_base_able_flag
-                    if self.data_base_able_flag:
-                        print('数据库查询已开启')
-                    else:
-                        print('数据库查询已关闭')
-
-                if self.net_work_adapt_button.collidepoint(event.pos):
-                    self.net_work_able_flag = not self.net_work_able_flag
-                    if self.net_work_able_flag:
-                        print('网络查询已开启')
-                    else:
-                        print('网络查询已关闭')
-
-                if self.image_upload_button.collidepoint(event.pos):
-                    self.upload_image_file_path = ImageUploader().get_image_path()
 
                 if self.UI_visible_button.collidepoint(event.pos):
                     self.ui_visible_flag = not self.ui_visible_flag
@@ -687,7 +713,6 @@ class DialogWindow:
                         print('没有输入任何内容')
                     self.send_button_clicked = True
                     self.button_press_time = pygame.time.get_ticks()
-
         return True
 
     def llm_repeat_button_clicked_func(self):
@@ -762,29 +787,14 @@ class DialogWindow:
                       f'你对用户的好感度:{self.agent.favorability};你对用户的信任值:{self.agent.trust_value};' \
                       f'你的心情:平静;突发情况:无]'
 
-            if self.setting_ls[4] == 0:
-                vision_model_prompt = self.user_text
-            else:
-                vision_model_prompt = self.vision_mode[str(self.setting_ls[4])]
-
-            if self.upload_image_file_path:
-                conversation_history = [{
-                    'role': 'user',
-                    'content': vision_model_prompt,
-                    'images': [fr"{self.upload_image_file_path}"]
-                }]
-                image_describe = chat_with_model(conversation_history, 'vision')[0]
-                ai_info = f'{ai_info[:-1]};你看到的视觉信息:{image_describe}]'
-                self.upload_image_file_path = None
+            if self.upload_file_content:
+                ai_info = f'{ai_info[:-1]};你看到的视觉信息:{self.upload_file_content}]'
+                self.upload_file_content = None
 
             external_content = ai_info
 
             if self.user_text and (self.user_text.endswith('??') or self.data_base_able_flag):
-                if self.setting_ls[2] == 0:
-                    res_ls = search_answer(self.user_text, self.data)
-                    res = "".join(res_ls)
-                else:
-                    res = self.v_kb.search(self.user_text)[0][0]
+                res = self.db_search(self.setting_ls[2])
 
                 if not res:
                     if self.net_work_able_flag:
@@ -798,12 +808,7 @@ class DialogWindow:
                 external_content = self.external_data_query_result_processing(ai_info, res)
 
             elif self.net_work_able_flag:
-                if '天气' in self.user_text:
-                    res = WebScarp().autonavi_weather_forecast()
-                else:
-                    res = WebScarp().search_get(self.user_text)
-                if res is None:
-                    res = "抱歉，暂未查询到结果"
+                res = self.web_search()
                 external_content = self.external_data_query_result_processing(ai_info, res)
 
             else:
@@ -844,11 +849,41 @@ class DialogWindow:
             self.send_disable_flag = False
             self.llm_response_text_analysis_flag = True
 
+    def web_search(self):
+        if '天气' in self.user_text:
+            res = WebScarp().autonavi_weather_forecast()
+        else:
+            res = WebScarp().search_get(self.user_text)
+        if res is None:
+            res = "抱歉，暂未查询到结果"
+        return res
+
+    def db_search(self, db_index):
+        res_ls = None
+        if db_index == 0:
+            res_ls = search_answer(self.user_text, self.qa_db)
+        elif db_index == 1:
+            res_ls = [item[0] for item in self.paragraph_rag_db.search(self.user_text)]
+        elif db_index == 2:
+            res_ls = [item[0] for item in self.fragmented_rag_db.search(self.user_text)]
+        elif db_index == 3:
+            res_ls = [item[0] for item in self.memory_rag_db.search(self.user_text)]
+        else:
+            pass
+
+        res = "".join(res_ls) if res_ls else None
+        return res
+
     def limit_context_length(self):  # 修剪上下文
         save_conversation_history(self.conversation_history,
                                   self.prompt_index, f'{self.role_cards_path}/memory_info/')
+        if not self.memory_rag_db:
+            memory_json_path = f'{self.role_cards_path}memory_info/memory.json'
+            self.memory_rag_db = KnowledgeBase(memory_json_path, 2)
         self.standard_conversation_history = None  # 清空备份聊天记录
         self.conversation_history = self.conversation_history[self.prompt_index:]
+        self.conversation_history_original_length = len(self.conversation_history)
+        # print(self.conversation_history)
         self.prompt_index = 0
         self.token_num = history_token_calculate(self.conversation_history)
 
@@ -945,7 +980,8 @@ class DialogWindow:
             self.setting_menu.draw()
             self.screen.blit(self.setting_menu.surface, (self.setting_menu.x, self.setting_menu.y))
 
-        self.room_select_box.draw(self.screen)  # 绘制场景选择下拉框
+        if self.ui_visible_flag:
+            self.room_select_box.draw(self.screen)  # 绘制场景选择下拉框
 
         pygame.display.flip()
 
@@ -957,8 +993,13 @@ class DialogWindow:
         self.input_box.draw(self.screen)  # 绘制输入框
 
         self.transformed_ls = [vars(self)[key] for key in self.transformed_names_ls]
-        [self.screen.blit(transformed, button) for transformed, button in
-         zip(self.transformed_ls, self.button_variables_ls)]
+
+        if self.ui_visible_flag:
+            [self.screen.blit(transformed, button) for transformed, button in
+             zip(self.transformed_ls, self.button_variables_ls)]
+        else:
+            if self.eye_btn_hover_flag:
+                self.screen.blit(self.eye_transformed, self.UI_visible_button)
 
         if self.refresh_status_flag:
             self.refresh_status()
@@ -975,7 +1016,8 @@ class DialogWindow:
         if self.change_btn_flag:
             self.change_btn_flag = False
 
-        self.clock_widget.draw(self.screen)  # 绘制时钟
+        if self.ui_visible_flag:
+            self.clock_widget.draw(self.screen)  # 绘制时钟
 
     def print_llm_response(self):
         if self.refresh_dialogue_flag:

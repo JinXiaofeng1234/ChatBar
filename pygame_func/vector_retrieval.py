@@ -3,7 +3,7 @@ import numpy as np
 import re
 import os
 from tqdm import tqdm
-from ChatBar.prompt_reader import save_json, read_json
+from prompt_reader import save_json, read_json
 
 
 def expand_indices(indices, max_length):

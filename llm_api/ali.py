@@ -1,6 +1,5 @@
-import os
 from openai import OpenAI
-from ChatBar import load_yaml
+import load_yaml
 
 api_key = load_yaml.GetApiGroup().get_qwen_api_key()
 
