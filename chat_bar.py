@@ -28,6 +28,7 @@ from role_cards_selector import FolderSelector
 from cheater_app import TextInputter
 from scroll_text_box import ScrollableTextBox
 from index_check import index_check
+from create_ai_info import creat_ai_info
 
 
 class DialogWindow:
@@ -44,6 +45,7 @@ class DialogWindow:
         self.database_adapt_transformed = None
         self.net_work_adapt_transformed = None
         self.eye_transformed = None
+        self.ai_info_send_transformed = None
 
         # === UI按钮元素 ===
         self.room_select_box = None
@@ -139,6 +141,7 @@ class DialogWindow:
         self.position_x = None
         self.single_line_max_num = None
         self.max_lines = None
+        self.ai_info_flag = True
 
         # === 调度和时间相关 ===
         self.schedule_dic = None
@@ -273,7 +276,7 @@ class DialogWindow:
 
         # 生成按钮transformed
         self.transformed_names_ls = read_json('ui_variable_data/transformed.json')
-        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[6:]]
+        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[7:]]
         self.button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[1:]]
 
         for t_name, icon, button in zip(self.transformed_names_ls, icon_variables_ls, self.button_variables_ls):
@@ -682,6 +685,10 @@ class DialogWindow:
                             self.vision_model_prompt = self.vision_mode[str(self.setting_ls[4])]
                         self.upload_file_content = ImageUploader().get_image_path(model_prompt=self.vision_model_prompt)
 
+                    if self.ai_info_send_flag_button.collidepoint(event.pos):
+                        self.ai_info_flag = not self.ai_info_flag
+                        print('智能体参数发送模式已变动')
+
                 if self.send_button.collidepoint(event.pos):
                     self.user_text = self.input_box.text
                     if self.user_text:
@@ -778,76 +785,70 @@ class DialogWindow:
                 save_json({"token_num": self.token_num}, 'token_num', self.role_cards_path)
 
     def agent_response(self):
-        if self.llm_process_flag:
-            if self.token_num >= 64000:
-                self.limit_context_length()
+        if not self.llm_process_flag:
+            return
+        if self.token_num >= 64000:
+            self.limit_context_length()
 
-            # remove_flag = False
-            ai_info = f'\nYour Status Parameters:[你和用户的关系:{self.relationship};' \
-                      f'你对用户的好感度:{self.agent.favorability};你对用户的信任值:{self.agent.trust_value};' \
-                      f'你的心情:平静;突发情况:无]'
+        ai_info, res = self._extreme_content_init() # 获取智能体状态和知识库查询结果
 
-            if self.upload_file_content:
-                ai_info = f'{ai_info[:-1]};你看到的视觉信息:{self.upload_file_content}]'
-                self.upload_file_content = None
+        send_content = self.send_info_to_llm(ai_status=ai_info, res=res)  # 装填用户回复
 
-            external_content = ai_info
+        self._llm_response_process(external_content=send_content)  # 大模型回复结果处理
+        self._reset_system_flags()  # 重置部分系统标志位
 
-            if self.user_text and (self.user_text.endswith('??') or self.data_base_able_flag):
-                res = self.db_search(self.setting_ls[2])
+    def _extreme_content_init(self):
+        res = str()
+        ai_info = creat_ai_info(self.relationship, self.agent.favorability, self.agent.trust_value) \
+            if self.ai_info_flag else None  # 智能体参数信息生成
+        if self.user_text and (self.user_text.endswith('??') or self.data_base_able_flag):
+            res = self.db_search(self.setting_ls[2])
 
-                if not res:
-                    if self.net_work_able_flag:
-                        # key_word = search_key_word(self.user_text, top_k_num=1)[0]
-                        res = WebScarp().search_get(self.user_text)
-                        if res is None:
-                            res = "抱歉，暂未查询到结果"
-                    else:
+            if not res:
+                if self.net_work_able_flag:
+                    res = WebScarp().search_get(self.user_text)
+                    if res is None:
                         res = "抱歉，暂未查询到结果"
+                else:
+                    res = "抱歉，暂未查询到结果"
 
-                external_content = self.external_data_query_result_processing(ai_info, res)
+        elif self.net_work_able_flag:
+            res = self.web_search()
+        elif self.upload_file_content:
+            res = self.upload_file_content
+            self.upload_file_content = None
+        return ai_info, res
 
-            elif self.net_work_able_flag:
-                res = self.web_search()
-                external_content = self.external_data_query_result_processing(ai_info, res)
+    def _llm_response_process(self, external_content):
+        back_tuple = chat_with_model(self.conversation_history, model=self.selected_option_index)
+        if back_tuple is None:
+            tokens = 0
+            self.llm_response_text = '0 ...'
+        else:
+            tokens = back_tuple[1]
+            self.llm_response_text = back_tuple[0]
+        if tokens == 0 or not tokens:
+            self.token_num += single_line_token_calculate(self.user_text)  # 计算token
+        else:
+            self.token_num = tokens
+        if not self.token_num_save_flag:
+            self.token_num_save_flag = True
+        if external_content:
+            self.conversation_history[-1]["content"] = self.user_text
+        self.response_text_length = len(self.llm_response_text)
+        # 将助手的回复添加到对话历史
+        self.conversation_history.append({"role": "assistant", "content": self.llm_response_text})
+        if not tokens:
+            self.token_num += single_line_token_calculate(self.llm_response_text)  # 计算token
 
-            else:
-                # 将用户输入添加到对话历史
-                self.conversation_history.append({"role": "user", "content": f'{self.user_text}{external_content}'})
-
-            remove_flag = True
-            back_tuple = chat_with_model(self.conversation_history, model=self.selected_option_index)
-            if back_tuple is None:
-                tokens = 0
-                self.llm_response_text = '0 ...'
-            else:
-                tokens = back_tuple[1]
-                self.llm_response_text = back_tuple[0]
-
-            if tokens == 0:
-                self.token_num += single_line_token_calculate(self.user_text)  # 计算token
-            else:
-                self.token_num = tokens
-
-            if not self.token_num_save_flag:
-                self.token_num_save_flag = True
-            if remove_flag and external_content:
-                self.conversation_history[-1]["content"] = self.conversation_history[-1]["content"]. \
-                    replace(external_content, '').strip(' ')
-            self.response_text_length = len(self.llm_response_text)
-            # 将助手的回复添加到对话历史
-            self.conversation_history.append({"role": "assistant", "content": self.llm_response_text})
-            if not tokens:
-                self.token_num += single_line_token_calculate(self.llm_response_text)  # 计算token
-            self.refresh_dialogue_flag = True
-            self.llm_process_flag = False
-
-            self.user_text = ''
-            self.input_box.text = ''
-            self.input_box.text_changed_flag = True
-
-            self.send_disable_flag = False
-            self.llm_response_text_analysis_flag = True
+    def _reset_system_flags(self):
+        self.refresh_dialogue_flag = True
+        self.llm_process_flag = False
+        self.user_text = ''
+        self.input_box.text = ''
+        self.input_box.text_changed_flag = True
+        self.send_disable_flag = False
+        self.llm_response_text_analysis_flag = True
 
     def web_search(self):
         if '天气' in self.user_text:
@@ -887,12 +888,21 @@ class DialogWindow:
         self.prompt_index = 0
         self.token_num = history_token_calculate(self.conversation_history)
 
-    def external_data_query_result_processing(self, ai_status, res):
+    def send_info_to_llm(self, ai_status, res):
         # 将用户输入添加到对话历史
-        external_content = f'{ai_status}\nDataBase Result:[{res}]'
+        send_content = str()
+        if all([not ai_status, not res]):
+            send_content = self.user_text
+        elif ai_status and res:
+            external_content = f'{ai_status}\nDataBase Result:[{res}]'
+            send_content = f'{self.user_text}\n{external_content}'
+        elif ai_status and not res:
+            send_content = f'{self.user_text}\n{ai_status}'
+        elif not ai_status and res:
+            send_content = f'{self.user_text}\nDataBase Result:[{res}]'
         self.conversation_history.append({"role": "user",
-                                          "content": f'{self.user_text}{external_content}'})
-        return external_content
+                                          "content": send_content})
+        return send_content
 
     def update(self):
 
@@ -939,6 +949,10 @@ class DialogWindow:
 
         self.eye_transformed = self.get_scaled_icon(
             self.eye_on_icon, self.eye_close_icon, self.UI_visible_button, self.ui_visible_flag
+        )
+
+        self.ai_info_send_transformed = self.get_scaled_icon(
+            self.ai_info_send_abled_icon, self.ai_info_send_disabled_icon, self.ai_info_send_flag_button, self.ai_info_flag
         )
 
         if current_select_model_index >= 0:

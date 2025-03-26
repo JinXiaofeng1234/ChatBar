@@ -126,8 +126,8 @@ def get_voice(content, prompt_id, main_path, sound_text='', role_id='', model='r
         try:
             # 在代码开头添加代理设置
             proxies = {
-                "http://": "http://192.168.1.7:7892",  # 根据你的VPN端口修改
-                "https://": "http://192.168.1.7:7892"
+                "http://": "http://192.168.1.11:7892",  # 根据你的VPN端口修改
+                "https://": "http://192.168.1.11:7892"
             }
 
             with httpx.Client(proxies=proxies, verify=False) as client:

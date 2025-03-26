@@ -3,7 +3,7 @@ import subprocess
 
 def start_ollama():
     # 定义命令
-    command = 'Start-Process "C:\\Users\\Cara  al sol\\AppData\\Local\\Programs\\Ollama\\ollama app.exe"'
+    command = 'Start-Process "C:\\Users\\jinxi\\AppData\\Local\\Programs\\Ollama\\ollama app.exe"'
 
     try:
         # 使用PowerShell执行命令

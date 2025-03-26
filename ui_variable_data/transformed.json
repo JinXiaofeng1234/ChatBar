@@ -13,5 +13,6 @@
   "llm_response_copy_transformed",
   "conversation_history_selector_transformed",
   "conversation_history_save_transformed",
-  "eye_transformed"
+  "eye_transformed",
+  "ai_info_send_transformed"
 ]
