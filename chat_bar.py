@@ -29,6 +29,7 @@ from cheater_app import TextInputter
 from scroll_text_box import ScrollableTextBox
 from index_check import index_check
 from create_ai_info import creat_ai_info
+from emotion_recognition import call_ai_api
 
 
 class DialogWindow:
@@ -46,6 +47,7 @@ class DialogWindow:
         self.net_work_adapt_transformed = None
         self.eye_transformed = None
         self.ai_info_send_transformed = None
+        self.ai_emtion_recog_transformed = None
 
         # === UI按钮元素 ===
         self.room_select_box = None
@@ -106,6 +108,7 @@ class DialogWindow:
         self.out_put_rules = None
         self.model_system_support_ls = None
         self.vision_model_prompt = str()
+        self.ai_emotion_recog_flag = False
 
         # === 角色状态相关 ===
         self.character_statu_dic = None
@@ -276,7 +279,7 @@ class DialogWindow:
 
         # 生成按钮transformed
         self.transformed_names_ls = read_json('ui_variable_data/transformed.json')
-        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[7:]]
+        icon_variables_ls = [vars(self)[key] for key in list(icons.keys())[8:]]
         self.button_variables_ls = [vars(self)[key] for key in list(buttons.keys())[1:]]
 
         for t_name, icon, button in zip(self.transformed_names_ls, icon_variables_ls, self.button_variables_ls):
@@ -501,29 +504,27 @@ class DialogWindow:
                              path=self.role_cards_path, text=self.sound_text,
                              role_key=self.role_key_ls[self.current_select_speech_gen_model_index])
 
-            for byte in llm_response_ls:
-                if byte in self.character_statu_dic.keys():
-                    relationship_change_value_dic = {'0': 0, '+': random.uniform(0.1, 1),
-                                                     '!+': random.uniform(1, 2), '!!+': random.uniform(2, 4),
-                                                     '-': random.uniform(-10, -1),
-                                                     '!-': random.uniform(-20, -10), '!!-': random.uniform(-40, -20)
-                                                     }
-                    self.update_character_image(byte, self.image_transition_mode_index)  # 更新人物立绘
+            byte = llm_response_ls[0] # 获取ai反馈情感标识符
+            if byte in self.character_statu_dic.keys():
+                relationship_change_value_dic = {'0': 0, '+': random.uniform(0.1, 1),
+                                                 '!+': random.uniform(1, 2), '!!+': random.uniform(2, 4),
+                                                 '-': random.uniform(-10, -1),
+                                                 '!-': random.uniform(-20, -10), '!!-': random.uniform(-40, -20)
+                                                 }
+                self.update_character_image(byte, self.image_transition_mode_index)  # 更新人物立绘
 
-                    if byte in relationship_change_value_dic:
-                        self.update_relationship(byte, relationship_change_value_dic)  # 确定关系偏移量
-                        prompt_refresh_flag = self.check_favorability_boundaries(prompt_refresh_flag)  # 检测关系索引
-                    self.relationship = self.relationship_dict[self.agent.relationship_index]  # 更新关系值
-                    print(self.relationship, self.agent.favorability)
-                    self.refresh_prompt(prompt_refresh_flag)  # 更新高级提示词
-                    self.llm_response_text_analysis_flag = False
-                    self.refresh_status_flag = True
-
-                    return
+                if byte in relationship_change_value_dic:
+                    self.update_relationship(byte, relationship_change_value_dic)  # 确定关系偏移量
+                    prompt_refresh_flag = self.check_favorability_boundaries(prompt_refresh_flag)  # 检测关系索引
+                self.relationship = self.relationship_dict[self.agent.relationship_index]  # 更新关系值
+                print(self.relationship, self.agent.favorability)
+                self.refresh_prompt(prompt_refresh_flag)  # 更新高级提示词
+                self.llm_response_text_analysis_flag = False
+                self.refresh_status_flag = True
             else:
                 self.update_character_image('0', self.image_transition_mode_index)
-            print(self.character_image_box)
-            self.llm_response_text_analysis_flag = False
+                print(self.character_image_box)
+                self.llm_response_text_analysis_flag = False
 
     def update_character_image(self, byte, index):
         previous_character_image_path = self.character_image_path
@@ -584,13 +585,17 @@ class DialogWindow:
 
     def filter_recovery(self):
         self.llm_response_text_filtered = self.llm_response_text  # 初始化过滤回复
-        llm_response_ls = self.llm_response_text.replace('『', '').replace('』', '').split(' ')
-        if len(llm_response_ls) > 1:
-            self.llm_response_text_filtered = "".join(llm_response_ls[1:])  # 整合过滤后的回复
-            self.llm_response_text_filtered = self.llm_response_text_filtered.replace('\n', '')  # 清除回车
-            self.llm_response_text_filtered = clean_llm_response(self.llm_response_text_filtered)  # 清除动作神态描写
+        if self.ai_emotion_recog_flag:
+            emotion_byte = self.character_expressions_flag_ls[call_ai_api(self.llm_response_text)['result']['class']]
+            llm_response_ls = [emotion_byte, self.llm_response_text]
         else:
-            llm_response_ls.insert(0, '0')
+            llm_response_ls = self.llm_response_text.split(' ')
+            if len(llm_response_ls) == 1:
+                    llm_response_ls.insert(0, '0')
+
+        self.llm_response_text_filtered = "".join(llm_response_ls[1:])  # 整合过滤后的回复
+        self.llm_response_text_filtered = self.llm_response_text_filtered.replace('\n', '')  # 清除回车
+        self.llm_response_text_filtered = clean_llm_response(self.llm_response_text_filtered)  # 清除动作神态描写
         print(f'过滤后的回复:{self.llm_response_text_filtered}')
         return llm_response_ls
 
@@ -688,6 +693,9 @@ class DialogWindow:
                     if self.ai_info_send_flag_button.collidepoint(event.pos):
                         self.ai_info_flag = not self.ai_info_flag
                         print('智能体参数发送模式已变动')
+
+                    if self.ai_emotion_recog_button.collidepoint(event.pos):
+                        self.ai_emotion_recog_flag = not self.ai_emotion_recog_flag
 
                 if self.send_button.collidepoint(event.pos):
                     self.user_text = self.input_box.text
@@ -823,7 +831,7 @@ class DialogWindow:
         back_tuple = chat_with_model(self.conversation_history, model=self.selected_option_index)
         if back_tuple is None:
             tokens = 0
-            self.llm_response_text = '0 ...'
+            self.llm_response_text = '0 ...' if not self.ai_emotion_recog_flag else '...'
         else:
             tokens = back_tuple[1]
             self.llm_response_text = back_tuple[0]
@@ -953,6 +961,10 @@ class DialogWindow:
 
         self.ai_info_send_transformed = self.get_scaled_icon(
             self.ai_info_send_abled_icon, self.ai_info_send_disabled_icon, self.ai_info_send_flag_button, self.ai_info_flag
+        )
+
+        self.ai_emtion_recog_transformed = self.get_scaled_icon(
+            self.ai_emotion_recog_abled_icon, self.ai_emotion_recog_disabled_icon, self.ai_emotion_recog_button, self.ai_emotion_recog_flag
         )
 
         if current_select_model_index >= 0:

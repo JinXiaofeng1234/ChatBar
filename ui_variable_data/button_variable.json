@@ -15,5 +15,6 @@
   "conversation_history_selector_button": [974, 652, 50, 50],
   "conversation_history_save_button": [974, 708, 50, 50],
   "UI_visible_button": [724, 0, 50, 50],
-  "ai_info_send_flag_button": [674, 0, 50, 50]
+  "ai_info_send_flag_button": [674, 0, 50, 50],
+  "ai_emotion_recog_button": [624, 0, 50, 50]
 }

@@ -5,7 +5,8 @@
     "knowledge_base_icon": "data_base_icon.png",
     "net_work_icon": "web_search_icon.png",
     "eye_close_icon": "eye_close.png",
-    "ai_info_send_disabled_icon": "document_file_outline_icon.png",
+    "ai_info_send_disabled_icon": "ai_info_send_disabled.png",
+    "ai_emotion_recog_abled_icon": "ai_recog_emotion_abled.png",
     "close_button_icon": "close_button_icon.png",
     "min_button_icon": "min_button_icon.png",
     "speech_icon_image": "sound_icon.png",
@@ -21,5 +22,6 @@
     "conversation_history_selector_icon": "conversation_selector_icon.png",
     "conversation_history_save_icon": "conversation_save_icon.png",
     "eye_on_icon": "eye_on.png",
-    "ai_info_send_abled_icon": "document_file_outline_icon.png"
+    "ai_info_send_abled_icon": "ai_info_send_able.png",
+    "ai_emotion_recog_disabled_icon": "ai_recog_emotion_disabled.png"
 }
