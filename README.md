@@ -3,3 +3,4 @@
 我的项目的python版本是3.8，高于这个版本可能会出现问题。  
 除此之外，fmmpeg，ollama的安装是必须的，如果你愿意，你也可以安装git。  
 因为版权问题，我无法上传role_cards和imgs文件夹里的素材，这可能导致侵权。
+如果您对赞助我感兴趣：https://afdian.com/a/ChatBar?tab=home
