@@ -4,8 +4,8 @@ import json
 from load_yaml import GetApiGroup
 
 sk_group = GetApiGroup().get_baidu_speech_keys()
-API_KEY = sk_group[0]  # "X4Y3PUBIT0IFa07og1bh9UYH"
-SECRET_KEY = sk_group[1]  # "eNCGWNYFrVPxlnFtpaGG1k8UrRugFgvr"
+API_KEY = sk_group[0]
+SECRET_KEY = sk_group[1]
 
 
 def speech_recognition(speech_base64):

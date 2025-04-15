@@ -13,9 +13,9 @@ from pydantic import BaseModel, conint
 from load_yaml import GetApiGroup
 
 RECHO_ROLE_ID = 'market:5088f41c-3ede-46d7-891d-a75970c17eac'
-RECHO_KEY = GetApiGroup().get_recho_api()  # 'Bearer sk-dd6898f561582b023a664a41d682a8c1'
+RECHO_KEY = GetApiGroup().get_recho_api()
 
-Fish_Audio_Key = GetApiGroup().get_fish_audio_key()  # "Bearer b208c945424c432aa99cc763f26f2ded"
+Fish_Audio_Key = GetApiGroup().get_fish_audio_key()
 Fish_role_Key = '537c26bf48244f1cbe03cc57696acba9'
 
 
@@ -139,6 +139,7 @@ def get_voice(content, prompt_id, main_path, sound_text='', role_id='', model='r
                             headers={
                                 "authorization": Fish_Audio_Key,
                                 "content-type": "application/msgpack",
+                                "model": "speech-1.6",  # Specify which TTS model to use
                             },
                             timeout=None,
                     ) as response:

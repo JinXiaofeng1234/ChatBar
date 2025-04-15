@@ -4,8 +4,6 @@ import load_yaml
 api_key = load_yaml.GetApiGroup().get_qwen_api_key()
 
 
-# 'sk-144ebd6390d14c0a822853b0f70b8b04'
-
 def chat_with_qw(conversation_history, model_name="qwen-plus"):
     try:
         client = OpenAI(

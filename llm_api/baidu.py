@@ -3,8 +3,8 @@ import json
 import load_yaml
 
 sk_group = load_yaml.GetApiGroup().get_erin_keys()
-API_KEY = sk_group[0]  # "482ecSxmh5aRPZgFCKz0jyGi"\
-SECRET_KEY = sk_group[1]  # "18sEP5QKUtxvK0PqZZnrpuAzxmXkGLlz"
+API_KEY = sk_group[0]
+SECRET_KEY = sk_group[1]
 
 
 def main(conversation_history):

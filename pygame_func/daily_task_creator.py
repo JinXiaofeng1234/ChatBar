@@ -67,10 +67,10 @@ def generate_schedule(data):
     schedule[start_time] = f"{start_time.strftime('%H:%M')} - 夜宵: {midnight_snack_food}"
 
     start_time += timedelta(hours=1)
-    schedule[start_time] = "睡觉"
+    schedule[start_time] = f"{start_time.strftime('%H:%M')} - 睡觉"
 
     start_time += timedelta(hours=7)
-    schedule[start_time] = "起床"
+    schedule[start_time] = f"{start_time.strftime('%H:%M')} - 起床"
 
     return schedule
 
