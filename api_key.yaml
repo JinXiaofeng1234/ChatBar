@@ -1,13 +1,13 @@
-RECHO_KEY: 'Bearer sk-dd6898f561582b023a664a41d682a8c1'
-Fish_Audio_Key: 'Bearer b208c945424c432aa99cc763f26f2ded'
+RECHO_KEY: ''
+Fish_Audio_Key: ''
 BaiDu_Speech_Recog:
-  API_KEY: 'X4Y3PUBIT0IFa07og1bh9UYH'
-  SECRET_KEY: 'eNCGWNYFrVPxlnFtpaGG1k8UrRugFgvr'
-Gaode_weather_key: 'b1c877e54d1d307679fee15a00158623'
+  API_KEY: ''
+  SECRET_KEY: ''
+Gaode_weather_key: ''
 Erin:
-  API_KEY: '482ecSxmh5aRPZgFCKz0jyGi'
-  SECRET_KEY: '18sEP5QKUtxvK0PqZZnrpuAzxmXkGLlz'
-QWen_API_KEY: 'sk-144ebd6390d14c0a822853b0f70b8b04'
-KIMI_SEARCH_API_KEY: 'sk-KotdVWoTLqUEiyBtYF0F2ugqU07BkG9v3xWXi9YfWu3GDNjI'
-DEEP_SEEK_API_KEY: "sk-680962b24e594c10a628be1f6f55d321"
-Silicon-Flow_API_KEY: "sk-itncphnzkqakytzqvkoqzkhaysifsnaeffbaitrsoidjcjnd"
+  API_KEY: ''
+  SECRET_KEY: ''
+QWen_API_KEY: ''
+KIMI_SEARCH_API_KEY: ''
+DEEP_SEEK_API_KEY: ""
+Silicon-Flow_API_KEY: ""
